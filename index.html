@@ -1,1 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Payroll Calculator</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Battambang:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-start: #e2e8f0;
+            --bg-end: #cbd5e1;
+            --card-color: #ffffff;
+            --primary-color: #3b82f6;
+            --secondary-color: #1d4ed8;
+            --text-color: #333333;
+            --secondary-text-color: #666666;
+            --border-color: #e5e7eb;
+            --input-bg: #f9fafb;
+            --guide-bg-color: #f8f9fa;
+            --accent-red: #ef4444; /* Standard deduction color */
+            --highlight-bg: #e0f2fe; /* Light blue background for emphasis */
+            --container-padding: 25px; /* Define container padding for easy reference */
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        body.khmer-lang {
+            font-family: 'Battambang', sans-serif;
+        }
+
+        .calculator-container {
+            background-color: var(--card-color);
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calculator-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        #appTitle {
+            color: var(--primary-color);
+            margin: 0;
+            font-weight: 600;
+            font-size: 2.2em;
+        }
+        
+        .help-button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            outline: none;
+            padding: 0;
+        }
+
+        .help-button:hover {
+            color: var(--secondary-color);
+        }
+        
+        #languageSelector {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.9em;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--secondary-text-color);
+            font-weight: 400;
+            font-size: 0.95em;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 1.1em;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input[type="number"]:focus, select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background-image: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .results-container {
+            margin-top: 40px;
+            padding: var(--container-padding); /* 25px */
+            background-color: var(--input-bg);
+            border-radius: 12px;
+            text-align: left;
+            border: 1px dashed var(--border-color);
+        }
+
+        #resultsTitle {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        .results-container p {
+            margin: 12px 0;
+            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .results-container span {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        /* Deduction style (now explicitly red) */
+        .deduction-amount {
+            color: var(--accent-red);
+        }
+        
+        /* Highlight Total Net Pay Row: BORDER FIX */
+        .final-net-pay {
+            /* REVERTED: Now sits perfectly inside the padded area */
+            margin-top: 20px !important;
+            
+            /* Background color and vertical padding */
+            background-color: var(--highlight-bg); 
+            padding-top: 15px;
+            padding-bottom: 15px;
+
+            /* Apply only horizontal margins that align with the content space */
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            width: 100% !important;
+
+            /* Apply border to top and bottom to delineate the final result */
+            border-top: 2px solid var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            
+            /* Use a Box Shadow for the left/right "border" look without conflicting with rounded corners */
+            box-shadow: 2px 0 0 0 var(--primary-color), 
+                        -2px 0 0 0 var(--primary-color);
+
+            /* Ensures content padding is still from the container */
+            padding-left: 0;
+            padding-right: 0;
+        }
+        
+        .final-net-pay span {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+
+        .section-heading {
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.3em;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        /* Styles for the new Day Breakdown table */
+        #dayBreakdownSection {
+            margin-top: 25px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        #dayBreakdownTitle {
+            font-weight: 600;
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        #dayBreakdownContent p {
+            font-size: 1em;
+            margin: 5px 0;
+            padding: 0;
+            color: var(--secondary-text-color);
+        }
+        
+        /* End of Day Breakdown Styles */
+        
+        /* User Guide Styles (kept the same for brevity) */
+        .user-guide-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .user-guide-content {
+            background-color: var(--guide-bg-color);
+            padding: 40px;
+            border-radius: 16px;
+            max-width: 90%;
+            width: 600px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+            color: var(--text-color);
+            animation: scaleIn 0.3s ease-in-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .user-guide-content h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .user-guide-content h3 {
+            color: var(--text-color);
+            font-weight: 600;
+            margin-top: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+        
+        .user-guide-content p, .user-guide-content li {
+            font-size: 1em;
+            color: var(--secondary-text-color);
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .user-guide-content li {
+            list-style-type: disc;
+            margin-left: 25px;
+        }
+        
+        .user-guide-content strong {
+            color: var(--text-color);
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: var(--secondary-text-color);
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 550px) {
+            body {
+                padding: 0;
+            }
+            .calculator-container {
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border: none;
+                padding: 25px 20px;
+            }
+            #appTitle {
+                font-size: 1.8em;
+            }
+            .results-container p, .results-container span {
+                font-size: 1em;
+            }
+            /* Adjust final net pay for smaller screens */
+            .final-net-pay {
+                /* On smaller screens, use explicit width and negative margins to align with edges */
+                margin-left: calc(-1 * var(--container-padding));
+                margin-right: calc(-1 * var(--container-padding));
+                width: calc(100% + (2 * var(--container-padding)));
+            }
+        }
+    </style>
+</head>
+<body class="english-lang">
+
+    <div class="calculator-container">
+        <div class="calculator-header">
+            <h1 id="appTitle">Payroll Calculator</h1>
+            <button class="help-button" id="openGuideBtn">ⓘ</button>
+            <select id="languageSelector">
+                <option value="en">English</option>
+                <option value="kh">ខ្មែរ</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label id="labelBasicSalary" for="basicSalary">Basic Salary ($)</label>
+            <input type="number" id="basicSalary" placeholder="Enter basic salary" required>
+        </div>
+        
+        <div class="input-group">
+            <label id="labelTotalDaysInMonth" for="totalDaysInMonth">Total Days in Month (e.g., 30 or 31)</label>
+            <input type="number" id="totalDaysInMonth" placeholder="e.g., 30" required>
+        </div>
+        
+        <div class="input-group">
+            <label id="labelAnnualLeave" for="annualLeave">Annual Leave (AL)</label>
+            <input type="number" id="annualLeave" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+        
+        <div class="input-group">
+            <label id="labelUnpaidLeave" for="unpaidLeave">Unpaid Leave (K)</label>
+            <input type="number" id="unpaidLeave" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+
+        <h3 id="headingRegularPay" class="section-heading">Regular Pay</h3>
+        <div class="input-group">
+            <label id="labelNormalDays" for="normalDays">Normal Days Worked (1x)</label>
+            <input type="number" id="normalDays" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+
+        <div class="input-group">
+            <label id="labelNightShiftDays" for="nightShiftDays">Night Shift Days Worked (1.5x)</label>
+            <input type="number" id="nightShiftDays" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+
+        <h3 id="headingHolidayPay" class="section-heading">Holiday Pay</h3>
+        <div class="input-group">
+            <label id="labelNormalHoliday" for="normalHoliday">Normal Holiday Days (2x)</label>
+            <input type="number" id="normalHoliday" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+        <div class="input-group">
+            <label id="labelHolidayNightShift" for="holidayNightShift">Holiday Night Shift Days (2.5x)</label>
+            <input type="number" id="holidayNightShift" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+        <div class="input-group">
+            <label id="labelNormalMajorHoliday" for="normalMajorHoliday">Major Holiday Days (3x)</label>
+            <input type="number" id="normalMajorHoliday" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+        <div class="input-group">
+            <label id="labelNightShiftMajorHoliday" for="nightShiftMajorHoliday">Major Holiday Night Shift Days (3.5x)</label>
+            <input type="number" id="nightShiftMajorHoliday" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+        
+        <h3 id="headingAdditionalIncome" class="section-heading">Additional Income</h3>
+        <div class="input-group">
+            <label id="labelMealMultiplier" for="mealMultiplier">Meal ($1 or $3) Per Day</label>
+            <select id="mealMultiplier">
+                <option value="1">1$</option>
+                <option value="3">3$</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="labelResponse" for="response">Response</label>
+            <input type="number" id="response" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+        
+        <div class="input-group">
+            <label id="labelApp" for="app">App</label>
+            <input type="number" id="app" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+
+        <div class="input-group">
+            <label id="labelParking" for="parking">Parking</label>
+            <input type="number" id="parking" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+
+        <div class="input-group">
+            <label id="labelDiligence" for="diligence">Diligence</label>
+            <input type="number" id="diligence" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+
+        <h3 id="headingDeductions" class="section-heading">Deductions</h3>
+        <div class="input-group">
+            <label id="labelMistake" for="mistake">Mistake</label>
+            <input type="number" id="mistake" value="0" onfocus="if(this.value=='0') this.value='';" onblur="if(this.value=='') this.value='0';" required>
+        </div>
+        
+        <button id="calculateBtn">Calculate</button>
+
+        <div class="results-container">
+            <h2 id="resultsTitle">Results</h2>
+            <p><span id="labelDailyRate">Daily Rate:</span> <span><span id="dailyRate"></span></span></p>
+            <p><span id="labelNormalShiftPay">Normal Shift Pay:</span> <span><span id="normalPay"></span></span></p>
+            <p><span id="labelNightShiftPay">Night Shift Pay:</span> <span><span id="nightShiftPay"></span></span></p>
+            <p><span id="labelNormalHolidayPay">Normal Holiday Pay:</span> <span><span id="normalHolidayPay"></span></span></p>
+            <p><span id="labelHolidayNightShiftPay">Holiday Night Shift Pay:</span> <span><span id="holidayNightShiftPay"></span></span></p>
+            <p><span id="labelNormalMajorHolidayPay">Normal Major Holiday Pay:</span> <span><span id="normalMajorHolidayPay"></span></span></p>
+            <p><span id="labelNightShiftMajorHolidayPay">Night Shift Major Holiday Pay:</span> <span><span id="nightShiftMajorHolidayPay"></span></span></p>
+            <p><span id="labelAnnualLeavePay">Annual Leave Pay:</span> <span><span id="annualLeavePay"></span></span></p>
+            <p><span id="labelMealPay">Meal Pay:</span> <span><span id="mealPay"></span></span></p>
+            
+            <div id="dayBreakdownSection">
+                <p id="dayBreakdownTitle"></p>
+                <div id="dayBreakdownContent">
+                    </div>
+            </div>
+
+            <p><span id="labelMistakeDeduction">Mistake Deduction:</span> <span><span id="mistakeDeduction" class="deduction-amount"></span></span></p>
+            <p><span id="labelUnpaidLeaveDeduction">Unpaid Leave Deduction:</span> <span><span id="unpaidLeaveDeduction" class="deduction-amount"></span></span></p>
+            
+            <p class="final-net-pay"><span id="labelTotalNetPay">Total Net Pay:</span> <span><span id="totalNetPay"></span></span></p>
+        </div>
+    </div>
+
+    <div class="user-guide-overlay" id="userGuideOverlay">
+        <div class="user-guide-content">
+            <button class="close-btn" id="closeGuideBtn">&times;</button>
+            <h2 id="guideTitle">User Guide</h2>
+            <p id="guideIntro">This calculator helps you determine your total monthly pay. Enter your basic salary and the number of days for each pay category.</p>
+
+            <h3 id="regularPayHeading">1. Regular Pay</h3>
+            <p id="regularPayText">This is your base pay based on a normal month's work.</p>
+            <ul>
+                <li id="normalDaysText"><strong>Normal Days Worked:</strong> Your standard pay rate (1x).</li>
+                <li id="nightShiftText"><strong>Night Shift Days Worked:</strong> Your pay for night shifts (1.5x your daily rate).</li>
+            </ul>
+
+            <h3 id="holidayPayHeading">2. Holiday Pay</h3>
+            <p id="holidayPayText">These rates apply for work performed on special days.</p>
+            <ul>
+                <li id="normalHolidayText"><strong>Normal Holiday:</strong> Pay for a regular holiday (2x).</li>
+                <li id="holidayNightShiftText"><strong>Holiday Night Shift:</strong> Night shift pay on a regular holiday (2.5x).</li>
+                <li id="normalMajorHolidayText"><strong>Major Holiday:</strong> Pay for a major holiday (3x).</li>
+                <li id="nightShiftMajorHolidayText"><strong>Major Holiday Night Shift:</strong> Night shift pay on a major holiday (3.5x).</li>
+            </ul>
+            
+            <h3 id="additionalIncomeHeading">3. Additional Income</h3>
+            <p id="additionalIncomeText">Any extra payments or allowances you receive.</p>
+            <ul>
+                <li id="mealMultiplierText"><strong>Meal Multiplier:</strong> Select whether your meal allowance is $1 or $3 per day. The total is calculated by multiplying the selected amount by your total working and paid holiday days.</li>
+                <li id="otherIncomeText"><strong>Response, App, Parking, Diligence:</strong> Enter any fixed amounts for these categories.</li>
+                <li id="annualLeaveText"><strong>Annual Leave (AL):</strong> These are paid days off and are included in your total paid days.</li>
+            </ul>
+
+            <h3 id="deductionsHeading">4. Deductions</h3>
+            <p id="deductionsText">Amounts that are subtracted from your total pay.</p>
+            <ul>
+                <li id="mistakeText"><strong>Mistake:</strong> Any amount to be deducted from your total pay.</li>
+                <li id="unpaidLeaveText"><strong>Unpaid Leave (K):</strong> A deduction equal to one day\'s salary for each unauthorized absence.</li>
+            </ul>
+
+            <h3 id="importantNoteHeading">5. Important Note</h3>
+            <p id="importantNoteText">This calculator assumes a standard number of workdays for a given month, which is the total days in the month minus 4 (representing weekends/rest days). Your daily rate is based on this number.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('calculateBtn').addEventListener('click', calculatePayroll);
+        
+        const openGuideBtn = document.getElementById('openGuideBtn');
+        const closeGuideBtn = document.getElementById('closeGuideBtn');
+        const userGuideOverlay = document.getElementById('userGuideOverlay');
+        const languageSelector = document.getElementById('languageSelector');
+
+        const appStrings = {
+            en: {
+                appTitle: 'Payroll Calculator',
+                labelBasicSalary: 'Basic Salary ($)',
+                labelTotalDaysInMonth: 'Total Days in Month (e.g., 30 or 31)',
+                headingRegularPay: 'Regular Pay',
+                labelNormalDays: 'Normal Days Worked (1x)',
+                labelNightShiftDays: 'Night Shift Days Worked (1.5x)',
+                headingHolidayPay: 'Holiday Pay',
+                labelNormalHoliday: 'Normal Holiday Days (2x)',
+                labelHolidayNightShift: 'Holiday Night Shift Days (2.5x)',
+                labelNormalMajorHoliday: 'Major Holiday Days (3x)',
+                labelNightShiftMajorHoliday: 'Major Holiday Night Shift Days (3.5x)',
+                headingAdditionalIncome: 'Additional Income',
+                labelMealMultiplier: 'Meal ($1 or $3) Per Day',
+                labelResponse: 'Response',
+                labelApp: 'App',
+                labelParking: 'Parking',
+                labelDiligence: 'Diligence',
+                labelAnnualLeave: 'Annual Leave (AL)',
+                headingDeductions: 'Deductions',
+                labelMistake: 'Mistake',
+                labelUnpaidLeave: 'Unpaid Leave (K)',
+                calculateBtn: 'Calculate',
+                resultsTitle: 'Results',
+                labelDailyRate: 'Daily Rate:',
+                labelNormalShiftPay: 'Normal Shift Pay:',
+                labelNightShiftPay: 'Night Shift Pay:',
+                labelNormalHolidayPay: 'Normal Holiday Pay:',
+                labelHolidayNightShiftPay: 'Holiday Night Shift Pay:',
+                labelNormalMajorHolidayPay: 'Normal Major Holiday Pay:',
+                labelNightShiftMajorHolidayPay: 'Night Shift Major Holiday Pay:',
+                labelAnnualLeavePay: 'Annual Leave Pay:',
+                labelMealPay: 'Meal Pay:',
+                labelMistakeDeduction: 'Mistake Deduction:',
+                labelUnpaidLeaveDeduction: 'Unpaid Leave Deduction:',
+                labelTotalNetPay: 'Total Net Pay:',
+                invalidInput: 'Please enter valid, non-negative numbers for all fields.',
+                totalDaysWarning: 'The total paid days cannot be greater than the total days in the month.',
+                dayBreakdownTitle: 'Day Count Breakdown',
+                labelTotalDaysAccounted: 'Total Days Accounted For:'
+            },
+            kh: {
+                appTitle: 'ម៉ាស៊ីនគិតប្រាក់បៀវត្ស',
+                labelBasicSalary: 'ប្រាក់បៀវត្សគោល ($)',
+                labelTotalDaysInMonth: 'ចំនួនថ្ងៃសរុបក្នុងមួយខែ (ឧ. ៣០ ឬ ៣១)',
+                headingRegularPay: 'ប្រាក់បៀវត្សធម្មតា',
+                labelNormalDays: 'ថ្ងៃធ្វើការធម្មតា (1x)',
+                labelNightShiftDays: 'ថ្ងៃធ្វើការវេនយប់ (1.5x)',
+                headingHolidayPay: 'ប្រាក់បៀវត្សថ្ងៃឈប់សម្រាក',
+                labelNormalHoliday: 'ថ្ងៃឈប់សម្រាកធម្មតា (2x)',
+                labelHolidayNightShift: 'ថ្ងៃឈប់សម្រាកវេនយប់ (2.5x)',
+                labelNormalMajorHoliday: 'ថ្ងៃឈប់សម្រាកធំ (3x)',
+                labelNightShiftMajorHoliday: 'ថ្ងៃឈប់សម្រាកធំវេនយប់ (3.5x)',
+                headingAdditionalIncome: 'ប្រាក់ចំណូលបន្ថែម',
+                labelMealMultiplier: 'អាហារ ($1 ឬ $3) ក្នុងមួយថ្ងៃ',
+                labelResponse: 'Response',
+                labelApp: 'App',
+                labelParking: 'Parking',
+                labelDiligence: 'Diligence',
+                labelAnnualLeave: 'ថ្ងៃឈប់សម្រាកប្រចាំឆ្នាំ (AL)',
+                headingDeductions: 'ការកាត់បន្ថយ',
+                labelMistake: 'កំហុស',
+                labelUnpaidLeave: 'ថ្ងៃឈប់សម្រាកមិនបង់ប្រាក់ (K)',
+                calculateBtn: 'គណនា',
+                resultsTitle: 'លទ្ធផល',
+                labelDailyRate: 'អត្រាប្រចាំថ្ងៃ៖',
+                labelNormalShiftPay: 'ប្រាក់បៀវត្សវេនធម្មតា៖',
+                labelNightShiftPay: 'ប្រាក់បៀវត្សវេនយប់៖',
+                labelNormalHolidayPay: 'ប្រាក់បៀវត្សថ្ងៃឈប់សម្រាកធម្មតា៖',
+                labelHolidayNightShiftPay: 'ប្រាក់បៀវត្សថ្ងៃឈប់សម្រាកវេនយប់៖',
+                labelNormalMajorHolidayPay: 'ប្រាក់បៀវត្សថ្ងៃឈប់សម្រាកធំ៖',
+                labelNightShiftMajorHolidayPay: 'ប្រាក់បៀវត្សថ្ងៃឈប់សម្រាកធំវេនយប់៖',
+                labelAnnualLeavePay: 'ប្រាក់បៀវត្សថ្ងៃឈប់សម្រាកប្រចាំឆ្នាំ៖',
+                labelMealPay: 'ប្រាក់បៀវត្សអាហារ៖',
+                labelMistakeDeduction: 'ការកាត់បន្ថយកំហុស៖',
+                labelUnpaidLeaveDeduction: 'ការកាត់បន្ថយថ្ងៃឈប់សម្រាកមិនបង់ប្រាក់៖',
+                labelTotalNetPay: 'ប្រាក់បៀវត្សសុទ្ធសរុប៖',
+                invalidInput: 'សូមបញ្ចូលលេខត្រឹមត្រូវ និងមិនអវិជ្ជមានសម្រាប់គ្រប់វាល។',
+                totalDaysWarning: 'ចំនួនថ្ងៃដែលត្រូវបង់សរុបមិនអាចធំជាងចំនួនថ្ងៃសរុបក្នុងមួយខែបានទេ។',
+                dayBreakdownTitle: 'ការបំបែកចំនួនថ្ងៃ',
+                labelTotalDaysAccounted: 'ចំនួនថ្ងៃដែលបានរាប់បញ្ចូលសរុប៖'
+            }
+        };
+
+        const guideTranslations = {
+            en: {
+                title: 'User Guide',
+                intro: 'This calculator helps you determine your total monthly pay. Enter your basic salary and the number of days for each pay category.',
+                regularPayHeading: '1. Regular Pay',
+                regularPayText: 'This is your base pay based on a normal month\'s work.',
+                normalDaysText: '<strong>Normal Days Worked:</strong> Your standard pay rate (1x).',
+                nightShiftText: '<strong>Night Shift Days Worked:</strong> Your pay for night shifts (1.5x your daily rate).',
+                holidayPayHeading: '2. Holiday Pay',
+                holidayPayText: 'These rates apply for work performed on special days.',
+                normalHolidayText: '<strong>Normal Holiday:</strong> Pay for a regular holiday (2x).',
+                holidayNightShiftText: '<strong>Holiday Night Shift:</strong> Night shift pay on a regular holiday (2.5x).',
+                normalMajorHolidayText: '<strong>Major Holiday:</strong> Pay for a major holiday (3x).',
+                nightShiftMajorHolidayText: '<strong>Major Holiday Night Shift:</strong> Night shift pay on a major holiday (3.5x).',
+                additionalIncomeHeading: '3. Additional Income',
+                additionalIncomeText: 'Any extra payments or allowances you receive.',
+                mealMultiplierText: '<strong>Meal Multiplier:</strong> Select whether your meal allowance is $1 or $3 per day. The total is calculated by multiplying the selected amount by your total working and paid holiday days.',
+                otherIncomeText: '<strong>Response, App, Parking, Diligence:</strong> Enter any fixed amounts for these categories.',
+                annualLeaveText: '<strong>Annual Leave (AL):</strong> These are paid days off and are included in your total paid days.',
+                deductionsHeading: '4. Deductions',
+                deductionsText: 'Amounts that are subtracted from your total pay.',
+                mistakeText: '<strong>Mistake:</strong> Any amount to be deducted from your total pay.',
+                unpaidLeaveText: '<strong>Unpaid Leave (K):</strong> A deduction equal to one day\'s salary for each unauthorized absence.',
+                importantNoteHeading: '5. Important Note',
+                importantNoteText: 'This calculator assumes a standard number of workdays for a given month, which is the total days in the month minus 4 (representing weekends/rest days). Your daily rate is based on this number.'
+            },
+            kh: {
+                title: 'ការណែនាំអ្នកប្រើប្រាស់',
+                intro: 'ម៉ាស៊ីនគិតលេខនេះជួយអ្នកកំណត់ប្រាក់បៀវត្សប្រចាំខែសរុបរបស់អ្នក។ បញ្ចូលប្រាក់ខែគោលរបស់អ្នក និងចំនួនថ្ងៃសម្រាប់ប្រភេទប្រាក់បៀវត្សនីមួយៗ។',
+                regularPayHeading: '១. ប្រាក់បៀវត្សធម្មតា',
+                regularPayText: 'នេះគឺជាប្រាក់បៀវត្សគោលរបស់អ្នក ផ្អែកលើការងារធម្មតារបស់អ្នកក្នុងមួយខែ។',
+                normalDaysText: '<strong>ថ្ងៃធ្វើការធម្មតា៖</strong> អត្រាប្រាក់បៀវត្សធម្មតារបស់អ្នក (1x)។',
+                nightShiftText: '<strong>ថ្ងៃធ្វើការវេនយប់៖</strong> ប្រាក់បៀវត្សរបស់អ្នកសម្រាប់វេនយប់ (1.5x នៃអត្រាប្រាក់បៀវត្សប្រចាំថ្ងៃរបស់អ្នក)។',
+                holidayPayHeading: '២. ប្រាក់បៀវត្សថ្ងៃឈប់សម្រាក',
+                holidayPayText: 'អត្រាទាំងនេះអនុវត្តចំពោះការងារដែលបានធ្វើនៅថ្ងៃពិសេស។',
+                normalHolidayText: '<strong>ថ្ងៃឈប់សម្រាកធម្មតា៖</strong> ប្រាក់បៀវត្សសម្រាប់ថ្ងៃឈប់សម្រាកធម្មតា (2x)។',
+                holidayNightShiftText: '<strong>វេនយប់ថ្ងៃឈប់សម្រាក៖</strong> ប្រាក់បៀវត្សវេនយប់នៅថ្ងៃឈប់សម្រាកធម្មតា (2.5x)។',
+                normalMajorHolidayText: '<strong>ថ្ងៃឈប់សម្រាកធំ៖</strong> ប្រាក់បៀវត្សសម្រាប់ថ្ងៃឈប់សម្រាកធំ (3x)។',
+                nightShiftMajorHolidayText: '<strong>វេនយប់ថ្ងៃឈប់សម្រាកធំ៖</strong> ប្រាក់បៀវត្សវេនយប់នៅថ្ងៃឈប់សម្រាកធំ (3.5x)។',
+                additionalIncomeHeading: '៣. ប្រាក់ចំណូលបន្ថែម',
+                additionalIncomeText: 'ការទូទាត់បន្ថែម ឬប្រាក់ឧបត្ថម្ភផ្សេងៗដែលអ្នកទទួលបាន។',
+                mealMultiplierText: '<strong>ប្រាក់គុណនឹងអាហារ៖</strong> ជ្រើសរើសថាតើប្រាក់ឧបត្ថម្ភអាហាររបស់អ្នកគឺ $1 ឬ $3 ក្នុងមួយថ្ងៃ។ ចំនួនសរុបត្រូវបានគណនាដោយគុណចំនួនទឹកប្រាក់ដែលបានជ្រើសរើសដោយចំនួនថ្ងៃធ្វើការសរុប និងថ្ងៃឈប់សម្រាកដែលមានប្រាក់ខែ។',
+                otherIncomeText: '<strong>Response, App, Parking, Diligence:</strong> បញ្ចូលចំនួនថេរសម្រាប់ប្រភេទទាំងនេះ។',
+                annualLeaveText: '<strong>ថ្ងៃឈប់សម្រាកប្រចាំឆ្នាំ (AL)៖</strong> ថ្ងៃទាំងនេះគឺជាថ្ងៃឈប់សម្រាកដែលទទួលបានប្រាក់ខែ ហើយត្រូវបានរាប់បញ្ចូលក្នុងចំនួនថ្ងៃដែលត្រូវបង់សរុប។',
+                deductionsHeading: '៤. ការកាត់ប្រាក់',
+                deductionsText: 'ចំនួនទឹកប្រាក់ដែលត្រូវបានកាត់ចេញពីប្រាក់បៀវត្សសរុបរបស់អ្នក។',
+                mistakeText: '<strong>កំហុស៖</strong> ចំនួនទឹកប្រាក់ណាមួយដែលត្រូវកាត់ចេញពីប្រាក់បៀវត្សសរុបរបស់អ្នក។',
+                unpaidLeaveText: '<strong>ថ្ងៃឈប់សម្រាកមិនបង់ប្រាក់ (K)៖</strong> ការកាត់ប្រាក់ស្មើនឹងប្រាក់ខែមួយថ្ងៃសម្រាប់រាល់ការអវត្តមានដោយគ្មានការអនុញ្ញាត។',
+                importantNoteHeading: '៥. ចំណាំសំខាន់',
+                importantNoteText: 'ម៉ាស៊ីនគិតលេខនេះសន្មតថាចំនួនថ្ងៃធ្វើការស្តង់ដារសម្រាប់ខែដែលបានផ្ដល់ឱ្យ គឺចំនួនថ្ងៃសរុបក្នុងមួយខែដក ៤ (តំណាងឱ្យចុងសប្តាហ៍/ថ្ងៃសម្រាក)។ អត្រាប្រចាំថ្ងៃរបស់អ្នកគឺផ្អែកលើចំនួននេះ។'
+            }
+        };
+
+        const updateAppLanguage = (lang) => {
+            const t = appStrings[lang];
+            const isKhmer = lang === 'kh';
+            document.body.classList.toggle('khmer-lang', isKhmer);
+
+            document.getElementById('appTitle').textContent = t.appTitle;
+            document.getElementById('labelBasicSalary').textContent = t.labelBasicSalary;
+            document.getElementById('labelTotalDaysInMonth').textContent = t.labelTotalDaysInMonth;
+            document.getElementById('headingRegularPay').textContent = t.headingRegularPay;
+            document.getElementById('labelNormalDays').textContent = t.labelNormalDays;
+            document.getElementById('labelNightShiftDays').textContent = t.labelNightShiftDays;
+            document.getElementById('headingHolidayPay').textContent = t.headingHolidayPay;
+            document.getElementById('labelNormalHoliday').textContent = t.labelNormalHoliday;
+            document.getElementById('labelHolidayNightShift').textContent = t.labelHolidayNightShift;
+            document.getElementById('labelNormalMajorHoliday').textContent = t.labelNormalMajorHoliday;
+            document.getElementById('labelNightShiftMajorHoliday').textContent = t.labelNightShiftMajorHoliday;
+            document.getElementById('headingAdditionalIncome').textContent = t.headingAdditionalIncome;
+            document.getElementById('labelMealMultiplier').textContent = t.labelMealMultiplier;
+            document.getElementById('labelResponse').textContent = t.labelResponse;
+            document.getElementById('labelApp').textContent = t.labelApp;
+            document.getElementById('labelParking').textContent = t.labelParking;
+            document.getElementById('labelDiligence').textContent = t.labelDiligence;
+            document.getElementById('labelAnnualLeave').textContent = t.labelAnnualLeave;
+            document.getElementById('headingDeductions').textContent = t.headingDeductions;
+            document.getElementById('labelMistake').textContent = t.labelMistake;
+            
+            document.getElementById('calculateBtn').textContent = t.calculateBtn;
+            document.getElementById('resultsTitle').textContent = t.resultsTitle;
+            document.getElementById('labelDailyRate').textContent = t.labelDailyRate;
+            document.getElementById('labelNormalShiftPay').textContent = t.labelNormalShiftPay;
+            document.getElementById('labelNightShiftPay').textContent = t.labelNightShiftPay;
+            document.getElementById('labelNormalHolidayPay').textContent = t.labelNormalHolidayPay;
+            document.getElementById('labelHolidayNightShiftPay').textContent = t.labelHolidayNightShiftPay;
+            document.getElementById('labelNormalMajorHolidayPay').textContent = t.labelNormalMajorHolidayPay;
+            document.getElementById('labelNightShiftMajorHolidayPay').textContent = t.labelNightShiftMajorHolidayPay;
+            document.getElementById('labelAnnualLeavePay').textContent = t.labelAnnualLeavePay;
+            
+            // Meal Pay label is handled dynamically in calculatePayroll
+            document.getElementById('labelMistakeDeduction').textContent = t.labelMistakeDeduction;
+            document.getElementById('labelUnpaidLeaveDeduction').textContent = t.labelUnpaidLeaveDeduction;
+            document.getElementById('labelTotalNetPay').textContent = t.labelTotalNetPay;
+
+            // Day Breakdown Section Update
+            document.getElementById('dayBreakdownTitle').textContent = t.dayBreakdownTitle;
+
+
+            const guideT = guideTranslations[lang];
+            document.getElementById('guideTitle').textContent = guideT.title;
+            document.getElementById('guideIntro').textContent = guideT.intro;
+            document.getElementById('regularPayHeading').textContent = guideT.regularPayHeading;
+            document.getElementById('regularPayText').textContent = guideT.regularPayText;
+            document.getElementById('normalDaysText').innerHTML = guideT.normalDaysText;
+            document.getElementById('nightShiftText').innerHTML = guideT.nightShiftText;
+            document.getElementById('holidayPayHeading').textContent = guideT.holidayPayHeading;
+            document.getElementById('holidayPayText').textContent = guideT.holidayPayText;
+            document.getElementById('normalHolidayText').innerHTML = guideT.normalHolidayText;
+            document.getElementById('holidayNightShiftText').innerHTML = guideT.holidayNightShiftText;
+            document.getElementById('normalMajorHolidayText').innerHTML = guideT.normalMajorHolidayText;
+            document.getElementById('nightShiftMajorHolidayText').innerHTML = guideT.nightShiftMajorHolidayText;
+            document.getElementById('additionalIncomeHeading').textContent = guideT.additionalIncomeHeading;
+            document.getElementById('additionalIncomeText').textContent = guideT.additionalIncomeText;
+            document.getElementById('mealMultiplierText').innerHTML = guideT.mealMultiplierText;
+            document.getElementById('otherIncomeText').innerHTML = guideT.otherIncomeText;
+            document.getElementById('annualLeaveText').innerHTML = guideT.annualLeaveText;
+            document.getElementById('deductionsHeading').textContent = guideT.deductionsHeading;
+            document.getElementById('deductionsText').textContent = guideT.deductionsText;
+            document.getElementById('mistakeText').innerHTML = guideT.mistakeText;
+            document.getElementById('unpaidLeaveText').innerHTML = guideT.unpaidLeaveText;
+            document.getElementById('importantNoteHeading').textContent = guideT.importantNoteHeading;
+            document.getElementById('importantNoteText').innerHTML = guideT.importantNoteText;
+        };
+        
+        openGuideBtn.addEventListener('click', () => {
+            userGuideOverlay.style.display = 'flex';
+        });
+
+        closeGuideBtn.addEventListener('click', () => {
+            userGuideOverlay.style.display = 'none';
+        });
+        
+        languageSelector.addEventListener('change', (event) => {
+            updateAppLanguage(event.target.value);
+        });
+
+        userGuideOverlay.addEventListener('click', (e) => {
+            if (e.target.id === 'userGuideOverlay') {
+                userGuideOverlay.style.display = 'none';
+            }
+        });
+
+        updateAppLanguage('en');
+
+        function calculatePayroll() {
+            const basicSalary = parseFloat(document.getElementById('basicSalary').value) || 0;
+            const totalDaysInMonth = parseInt(document.getElementById('totalDaysInMonth').value) || 0;
+            
+            const normalDays = parseFloat(document.getElementById('normalDays').value) || 0;
+            const nightShiftDays = parseFloat(document.getElementById('nightShiftDays').value) || 0;
+            const mealMultiplier = parseFloat(document.getElementById('mealMultiplier').value) || 0;
+            
+            const normalHoliday = parseFloat(document.getElementById('normalHoliday').value) || 0;
+            const holidayNightShift = parseFloat(document.getElementById('holidayNightShift').value) || 0;
+            const normalMajorHoliday = parseFloat(document.getElementById('normalMajorHoliday').value) || 0;
+            const nightShiftMajorHoliday = parseFloat(document.getElementById('nightShiftMajorHoliday').value) || 0;
+            const annualLeave = parseFloat(document.getElementById('annualLeave').value) || 0;
+            const unpaidLeave = parseFloat(document.getElementById('unpaidLeave').value) || 0;
+
+            const response = parseFloat(document.getElementById('response').value) || 0;
+            const app = parseFloat(document.getElementById('app').value) || 0;
+            const parking = parseFloat(document.getElementById('parking').value) || 0;
+            const diligence = parseFloat(document.getElementById('diligence').value) || 0;
+            const mistake = parseFloat(document.getElementById('mistake').value) || 0;
+            
+            const requiredFields = [
+                {id: 'basicSalary', label: 'Basic Salary'},
+                {id: 'totalDaysInMonth', label: 'Total Days in Month'}
+            ];
+
+            for (const field of requiredFields) {
+                const value = document.getElementById(field.id).value;
+                if (value === '' || isNaN(parseFloat(value)) || parseFloat(value) < 0) {
+                    alert(`${appStrings[languageSelector.value].invalidInput}\n\nField: ${field.label}`);
+                    return;
+                }
+            }
+
+            const STANDARD_WORK_DAYS = totalDaysInMonth - 4;
+            
+            if (STANDARD_WORK_DAYS <= 0) {
+                alert("Standard work days for this month is 0 or less. Please enter a valid number of days in the month.");
+                return;
+            }
+            
+            // --- Day Calculations ---
+            // Total days eligible for meal pay (Paid working/Holiday days only, AL excluded)
+            const totalDaysForMealPay = normalDays + nightShiftDays + normalHoliday + holidayNightShift + normalMajorHoliday + nightShiftMajorHoliday;
+
+            // Total days accounted for in inputs
+            const totalDaysAccounted = totalDaysForMealPay + annualLeave + unpaidLeave; 
+
+            // --- Core Payroll Calculations ---
+            const dailyRate = basicSalary / STANDARD_WORK_DAYS;
+            const normalPay = dailyRate * normalDays;
+            const nightShiftPay = (dailyRate * 1.5) * nightShiftDays;
+            
+            const mealPay = totalDaysForMealPay * mealMultiplier;
+            const annualLeavePay = dailyRate * annualLeave;
+            const otherIncome = response + app + parking + diligence;
+            
+            const normalHolidayPay = (dailyRate * 2) * normalHoliday;
+            const holidayNightShiftPay = (dailyRate * 2.5) * holidayNightShift;
+            const normalMajorHolidayPay = (dailyRate * 3) * normalMajorHoliday;
+            const nightShiftMajorHolidayPay = (dailyRate * 3.5) * nightShiftMajorHoliday;
+            
+            const totalGrossPay = normalPay + nightShiftPay + normalHolidayPay + holidayNightShiftPay + normalMajorHolidayPay + nightShiftMajorHolidayPay + annualLeavePay + mealPay + otherIncome;
+            
+            const unpaidLeaveDeduction = dailyRate * unpaidLeave;
+            const totalNetPay = totalGrossPay - mistake - unpaidLeaveDeduction;
+            
+            // --- RESULT DISPLAY UPDATES ---
+            
+            // 1. Dynamic Meal Pay Label
+            const mealMultiplierString = mealMultiplier.toFixed(0) + '$';
+            const currentLang = languageSelector.value;
+            const t = appStrings[currentLang];
+            let mealPayLabelText;
+
+            if (currentLang === 'en') {
+                mealPayLabelText = `Meal Pay (${mealMultiplierString} x ${totalDaysForMealPay} days):`;
+            } else if (currentLang === 'kh') {
+                mealPayLabelText = `ប្រាក់បៀវត្សអាហារ (${mealMultiplierString} x ${totalDaysForMealPay} ថ្ងៃ)៖`;
+            }
+            document.getElementById('labelMealPay').textContent = mealPayLabelText;
+
+
+            // 2. Dynamic Day Breakdown Section
+            const breakdownDays = [
+                { label: t.labelNormalDays, value: normalDays },
+                { label: t.labelNightShiftDays, value: nightShiftDays },
+                { label: t.labelNormalHoliday, value: normalHoliday },
+                { label: t.labelHolidayNightShift, value: holidayNightShift },
+                { label: t.labelNormalMajorHoliday, value: normalMajorHoliday },
+                { label: t.labelNightShiftMajorHoliday, value: nightShiftMajorHoliday },
+                { label: t.labelAnnualLeave, value: annualLeave, style: 'color: var(--primary-color);' },
+                { label: t.labelUnpaidLeave, value: unpaidLeave, style: 'color: var(--accent-red);' }
+            ];
+
+            let breakdownHTML = '';
+            breakdownDays.forEach(day => {
+                if (day.value > 0) {
+                    breakdownHTML += `<p><span style="${day.style || ''}">${day.label}</span> <span>${day.value} days</span></p>`;
+                }
+            });
+
+            // Add the total accounted days at the end
+            if (breakdownHTML !== '') {
+                breakdownHTML += `<p style="border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 8px;"><strong>${t.labelTotalDaysAccounted}</strong> <span><strong>${totalDaysAccounted} days</strong></span></p>`;
+            }
+
+
+            document.getElementById('dayBreakdownContent').innerHTML = breakdownHTML;
+            document.getElementById('dayBreakdownTitle').textContent = t.dayBreakdownTitle;
+            
+
+            // 3. Main Result Outputs
+            document.getElementById('dailyRate').textContent = `$${dailyRate.toFixed(2)}`;
+            document.getElementById('normalPay').textContent = `$${normalPay.toFixed(2)}`;
+            document.getElementById('nightShiftPay').textContent = `$${nightShiftPay.toFixed(2)}`;
+            document.getElementById('normalHolidayPay').textContent = `$${normalHolidayPay.toFixed(2)}`;
+            document.getElementById('holidayNightShiftPay').textContent = `$${holidayNightShiftPay.toFixed(2)}`;
+            document.getElementById('normalMajorHolidayPay').textContent = `$${normalMajorHolidayPay.toFixed(2)}`;
+            document.getElementById('nightShiftMajorHolidayPay').textContent = `$${nightShiftMajorHolidayPay.toFixed(2)}`;
+            document.getElementById('annualLeavePay').textContent = `$${annualLeavePay.toFixed(2)}`;
+            document.getElementById('mealPay').textContent = `$${mealPay.toFixed(2)}`;
+            document.getElementById('mistakeDeduction').textContent = `-$${mistake.toFixed(2)}`;
+            document.getElementById('unpaidLeaveDeduction').textContent = `-$${unpaidLeaveDeduction.toFixed(2)}`;
+            document.getElementById('totalNetPay').textContent = `$${totalNetPay.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
